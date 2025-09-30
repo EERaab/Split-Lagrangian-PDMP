@@ -1,0 +1,45 @@
+#While the numerical parameters specify "how" we compute derivatives and etc, the specific values that we compute are stored in EvolutionData structures.
+#Because of the complexity in the Lagrangian methods we shall need several "sub-structures".
+
+#Conveniently all Lagrangian-type methods share the same basic evolution data.
+
+    #The pointwise numerical derivatives are stored in PointData.
+    mutable struct PointData
+        gradient::Vector{Float64}
+        position_update_data::DiffResults.MutableDiffResult
+        velocity_update_data::DiffResults.MutableDiffResult
+    end
+
+    #Given the pointwise data we also store spectral data about the hessian.
+    struct SpectralData
+        Q::Matrix{Float64}
+        jmatrix::Matrix{Float64}
+        Dinv::Diagonal{Float64}
+    end
+
+    #Given the spectral data we construct some tensors that are used to compute the rates in the velocity update.
+    #Their exact fields that we need to include will depend on the PDMP so we just define a abstract type here
+    abstract type EvoTensors 
+    end
+
+
+
+#Finally we combine the above three objects into a single structure
+struct LagrangianEvoData{T}<:EvolutionData{Lagrangian_Method} where T<:EvoTensors
+    point_data::PointData
+    spectral_data::SpectralData
+    evo_tensors::T
+end
+
+
+#Evo-data initialization has been moved into the PDMPs.
+function initialize_evolution_data(pdmp::PDMP{<:Lagrangian_Method})
+    dim = pdmp.target.dimension
+    return LagrangianEvoData(initialize_point_data(dim), initialize_spectral_data(dim), initialize_evo_tensors(pdmp))
+end
+
+#EVO tensors has been moved into the PDMPs.
+#include("evo tensors.jl") 
+
+include("point data.jl")
+include("spectral data.jl")
