@@ -1,4 +1,4 @@
-using LinearAlgebra, StaticArrays, DiffResults, ForwardDiff, OrdinaryDiffEq, Distributions, TensorOperations, Plots, Random
+using LinearAlgebra, StaticArrays, DiffResults, ForwardDiff, OrdinaryDiffEq, Distributions, TensorOperations, Plots, Random, FastLapackInterface
 #using BenchmarkTools
 
 include("pdmp definitions.jl")

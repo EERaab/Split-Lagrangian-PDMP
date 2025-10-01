@@ -14,7 +14,8 @@
     struct SpectralData
         Q::Matrix{Float64}
         jmatrix::Matrix{Float64}
-        Dinv::Diagonal{Float64}
+        Dinv::Diagonal{Float64, Vector{Float64}}
+        ws::HermitianEigenWs{Float64, Matrix{Float64}, Float64}
     end
 
     #Given the spectral data we construct some tensors that are used to compute the rates in the velocity update.
