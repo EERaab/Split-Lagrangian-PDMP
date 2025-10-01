@@ -22,13 +22,9 @@ end
 
 function hess_tp_20D!(hess::Matrix{Float64}, X::Vector{Float64})
     R = exp((-sum(X)/2)+2.5)
-    @inbounds for i in eachindex(X)
-        @inbounds for j in eachindex(X)
-            hess[i,j] = R*0.25/(1+R)^2
-            if i==j
-                hess[i,j] += -1
-            end 
-        end
+    fill!(hess, R*0.25/(1+R)^2)
+    for i in eachindex(X)
+        @inbounds hess[i,i] += -1        
     end
     return hess
 end
@@ -48,6 +44,6 @@ function dirhess_tp_20D!(dirhess::Array{Float64,2}, X::Vector{Float64}, V::Vecto
     return dirhess
 end
 
-tp_20D_analytical_derivatives = AnalyticalDer(grad_tp_20D!, hess_tp_20D!, dirhess_tp_20D!, jachess_tp_20D!)
+analytical_derivatives = AnalyticalDer(grad_tp_20D!, hess_tp_20D!, dirhess_tp_20D!, jachess_tp_20D!)
     
 target = TargetData(log_twin_peaks_20D, 20)
