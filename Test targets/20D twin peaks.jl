@@ -1,6 +1,6 @@
 function log_twin_peaks_20D(X::Vector)
-    sum1 = sum(X.^2)
-    sum2 = sum((X .-0.5).^2)
+    sum1 = dot(X,X)
+    sum2 = sum1 - sum(X) + 5.0#dot((X .-0.5),(X .-0.5))
     return log(exp(-sum1/2.0)+exp(-sum2/2.0)) - 10*log(2*π)
 end
 
@@ -10,5 +10,44 @@ end
 
 x_marginal_distr(x) = (normal(0.0, 1.0)(x)+normal(0.5, 1.0)(x))/2
 y_marginal_distr(y) = (normal(0.0, 1.0)(y)+normal(0.5, 1.0)(y))/2
+
+function grad_tp_20D!(grad::Vector{Float64}, X::Vector{Float64})
+    shift = (0.5/(1+exp((-sum(X)/2)+2.5))) 
+    @inbounds for i in eachindex(grad)
+        grad[i] = -X[i] + shift
+    end
+    return grad
+end
+
+
+function hess_tp_20D!(hess::Matrix{Float64}, X::Vector{Float64})
+    R = exp((-sum(X)/2)+2.5)
+    @inbounds for i in eachindex(X)
+        @inbounds for j in eachindex(X)
+            hess[i,j] = R*0.25/(1+R)^2
+            if i==j
+                hess[i,j] += -1
+            end 
+        end
+    end
+    return hess
+end
+
+
+function jachess_tp_20D!(jachess::Array{Float64,3}, X::Vector{Float64})
+    R = exp((-sum(X)/2)+2.5)
+    fill!(jachess, 0.125*(R-R^2)/(R+1)^3)
+    return jachess
+end
+    
+
+function dirhess_tp_20D!(dirhess::Array{Float64,2}, X::Vector{Float64}, V::Vector{Float64})
+    R = exp((-sum(X)/2)+2.5)
+    sv = sum(V)
+    fill!(dirhess, 0.125*sv*(R-R^2)/(R+1)^3)
+    return dirhess
+end
+
+tp_20D_analytical_derivatives = AnalyticalDer(grad_tp_20D!, hess_tp_20D!, dirhess_tp_20D!, jachess_tp_20D!)
     
 target = TargetData(log_twin_peaks_20D, 20)
