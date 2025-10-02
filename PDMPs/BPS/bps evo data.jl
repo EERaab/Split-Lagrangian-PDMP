@@ -9,11 +9,6 @@ function initialize_evolution_data(pdmp::PDMP{<:BPS_Method})
 end
 
 function fetch_evo_data!(pdmp::PDMP{<:BPS_Method}, evo_data::BPSEvoData, numerics::NumericalParameters, state::BinaryState, dyn_type::DynType)
-    #We update the gradient
-    global n_call_grad
-    global n_call_point
-    n_call_point += 1
-    n_call_grad += 1
     if numerics.diff_method isa ForwardDer
         ForwardDiff.gradient!(evo_data.gradient, pdmp.target.log_density, state.position)
     elseif numerics.diff_method isa AnalyticalDer

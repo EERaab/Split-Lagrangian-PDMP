@@ -51,16 +51,6 @@ end
 
 #For ForwardDiff we use this function to fetch point data.
 function fetch_point_data!(point_data::PointData, pdmp::PDMP{<:Lagrangian_Method}, state::BinaryState, diff_method::ForwardDer, dyn_type::VelocityODE{Lagrangian}) 
-
-    global n_call_point
-    global n_call_density
-    global n_call_grad
-    global n_call_hess
-    global n_call_3
-    n_call_point += 1
-    n_call_density += 1
-    n_call_hess += 1
-    n_call_3 += 1
     #We introduce a shorthand
     log_density = pdmp.target.log_density
     

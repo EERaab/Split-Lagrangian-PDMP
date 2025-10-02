@@ -108,8 +108,7 @@ function algorithm(
     nums::NumericalParameters;
     point_number::Integer = 10,
     max_time::Float64 = 1.0,                # stochastic integration time
-    max_computation_time::Float64 = Inf,    # new wall-clock time limit (seconds)
-    initial_state::Union{Nothing,BinaryState} = nothing,
+    initial_state::Union{Nothing, BinaryState} = nothing,
     use_correction::Bool = true,
 )
 
@@ -126,11 +125,8 @@ function algorithm(
     end
     push!(state_list, initial_state)
 
-    # Record start time
-    t_start = time()
-
     # Main loop
-    while k < point_number && (time() - t_start) < max_computation_time
+    while k < point_number
         new_state = BinaryState(
             copy.(state_list[end].position),
             sample_auxiliary!(pdmp, state_list[end].position, evo_data, nums),

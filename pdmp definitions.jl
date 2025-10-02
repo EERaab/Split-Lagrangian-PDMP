@@ -10,9 +10,9 @@ end
 abstract type PDMP_Method
 end
 
-@kwdef struct PDMP{T<:PDMP_Method}
+@kwdef struct PDMP{T<:PDMP_Method, F}
     method::T
-    target::TargetData
+    target::TargetData{F}
     reversed::Bool = false
 end
 

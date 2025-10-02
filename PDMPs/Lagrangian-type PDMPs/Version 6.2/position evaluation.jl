@@ -45,6 +45,5 @@ function rho_point_values(evoldata::LagrangianEvoData{EvoTensorsVersion6_2}, gr:
 
     P = QT*v
     term2::Float64 = dot(P,vM,P)/2.0 - tr(vM*Dinv)/2
-    #term2::Float64 = (P'*vM*P)/2.0 - tr(vM*Dinv)/2
     return term1, term2
 end
