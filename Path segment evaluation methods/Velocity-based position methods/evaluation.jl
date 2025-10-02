@@ -22,7 +22,7 @@ function evaluate_segment!(pdmp::PDMP, state::BinaryState, evolution_data::Evolu
     state.position .= position
     segment.time = time
     if segment.terminal
-        return segment, Terminal()
+        return segment, Terminal() 
     end
     new_dyn = select_dynamic(segment)
     return segment, new_dyn

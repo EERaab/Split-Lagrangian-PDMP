@@ -35,7 +35,7 @@ end
 
 #Every path segment needs to encode a few bits of information to compute an acceptance rate factor (ARF).
 #The rates are given as a (mutable) static array
-@kwdef mutable struct PathSegmentValues{K<:PDMP_Method, N}
+@kwdef mutable struct PathSegmentValues{K<:PDMP_Method, N <: Integer}
     dyn::DynType
     time::Float64 = 0.0
     forward_rates::MVector{N, Float64} = zeros(MVector{N, Float64})

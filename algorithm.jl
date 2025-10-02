@@ -28,8 +28,8 @@ function new_point!(pdmp::PDMP, rev_pdmp::PDMP, state::BinaryState, evolution_da
 
     #We shall need an "old" dynamic as well for the reverse rate computations.
     old_dynamic = PositionVelocity()
-    skeleton = []
     if save_skeleton
+        skeleton = Vector{Float64}[]
         push!(skeleton, copy.(state.position))
     end
 
@@ -49,11 +49,11 @@ function new_point!(pdmp::PDMP, rev_pdmp::PDMP, state::BinaryState, evolution_da
         acceptance *= reverse_acceptance_rate_factor(segment, old_dynamic, initial)
         
         if new_dynamic isa Terminal
-            # x is of type Terminal
-            #println("terminal time = $time, max_time = $max_time, " ,time < max_time)
-            #terminal_reached = true
+            #In these cases the position update has determined that we exceed termination time.
+            #So, we should have time ≥ max_time, i.e. we should just set final = true
+            #This is definitely possible to remove without the clunkt time += 0.1
 
-            time += 0.1 #let's avoid strange things
+            time += 0.1 
         end
 
         if initial
@@ -127,18 +127,20 @@ function algorithm(
 
     # Main loop
     while k < point_number
-        new_state = BinaryState(
-            copy.(state_list[end].position),
-            sample_auxiliary!(pdmp, state_list[end].position, evo_data, nums),
-        )
+        #We take the last state position and initialize a new state with a resampled velocity.
+        new_state = initialize_binary_state!(pdmp, evo_data, nums, initial_position = copy.(state_list[end].position))
 
         acceptance, n_evt_new = new_point!(pdmp, rev_pdmp, new_state, evo_data, nums, max_time)
         acceptance = min(1, acceptance)
         n_evt += n_evt_new
 
         if isnan(acceptance)
-            acceptance = 0
+            @show new_state
+            @show evo_data
+            error("NaN acceptance")
+            #acceptance = 0
         end
+
         push!(acceptances, acceptance)
 
         if use_correction

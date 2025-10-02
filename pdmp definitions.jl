@@ -5,11 +5,12 @@ struct TargetData{F}
     dimension::Integer
 end
 
-#A PDMP is a method and a target on which that method is applied. Together the two determine the PDMP fully.
+#A PDMP is a PDMP method and a target on which that method is applied. Together the two determine the PDMP fully.
 #Abstractly they tell us what the method does.
 abstract type PDMP_Method
 end
 
+#On occasion we shall want to reverse the PDMP, and this Z2 transf. can be included in the original PDMP.
 @kwdef struct PDMP{T<:PDMP_Method, F}
     method::T
     target::TargetData{F}
