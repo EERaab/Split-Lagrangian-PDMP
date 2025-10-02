@@ -1,15 +1,18 @@
 
 #All Lagrangian-type methods have the same (conditional) density kernel.
 #This allows us to define broad methods to sample the velocity or determine the full density kernel for all such PDMPs 
-function velocity_covariance_matrix!(pdmp::PDMP{<:Lagrangian_Method}, position::Vector{Float64}, evo_data::LagrangianEvoData, numerics::NumericalParameters)
+function fetch_velocity_covariance_matrix!(pdmp::PDMP{<:Lagrangian_Method}, position::Vector{Float64}, evo_data::LagrangianEvoData, numerics::NumericalParameters)
     #We determine the hessian
     fetch_hessian!(evo_data.point_data, pdmp.target.log_density, position, numerics.diff_method)
     
     #We determine the spectral data associated to the hessian. It has the unfortunate name evo_data.point_data.position_update_data.value
     fetch_spectral_data!(evo_data.spectral_data, evo_data.point_data.position_update_data.value, pdmp.method.hardness)
 
-    covariance_matrix = Symmetric((evo_data.spectral_data.Q)*(evo_data.spectral_data.Dinv)*(evo_data.spectral_data.Q'))
-    return covariance_matrix
+    #The covariance_matrix is stored and updated in_place.
+    #We only use the upper part of the matrix to determine the symmetric covariance matrix.
+    #Thus we do not actually have to carry out the full multiplication here.
+    evo_data.aux_covariance.data .= (evo_data.spectral_data.Q)*(evo_data.spectral_data.Dinv)*(evo_data.spectral_data.Q')
+    return evo_data.aux_covariance
 end
 
 function auxiliary_kernel!(pdmp::PDMP{<:Lagrangian_Method}, state::BinaryState, evo_data::LagrangianEvoData, numerics::NumericalParameters)

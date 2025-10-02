@@ -1,5 +1,5 @@
-function velocity_covariance_matrix!(pdmp::PDMP{<:BPS_Method}, position::Vector{Float64}, evo_data::BPSEvoData, numerics::BPSNumerics)
-    return I
+function fetch_velocity_covariance_matrix!(pdmp::PDMP{<:BPS_Method}, position::Vector{Float64}, evo_data::BPSEvoData, numerics::BPSNumerics)
+    return evo_data.aux_covariance
 end
 
 function auxiliary_kernel!(pdmp::PDMP{<:BPS_Method}, state::BinaryState, evo_data::BPSEvoData, numerics::BPSNumerics)
