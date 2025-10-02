@@ -1,10 +1,9 @@
 struct BPSEvoData<:EvolutionData{BPS_Method}
     gradient::Vector{Float64}
-    aux_covariance::Symmetric{Float64, Matrix{Float64}}
 end
 
 function initialize_evolution_data(pdmp::PDMP{<:BPS_Method})
-    return BPSEvoData(zeros(Float64, pdmp.target.dimension), Symmetric(Float64.(I(dim))))
+    return BPSEvoData(zeros(Float64, pdmp.target.dimension))
 end
 
 function fetch_evo_data!(pdmp::PDMP{<:BPS_Method}, evo_data::BPSEvoData, numerics::NumericalParameters, state::BinaryState, dyn_type::DynType)

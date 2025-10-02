@@ -30,14 +30,18 @@ struct LagrangianEvoData{T}<:EvolutionData{Lagrangian_Method} where T<:EvoTensor
     point_data::PointData
     spectral_data::SpectralData
     evo_tensors::T
-    aux_covariance::Symmetric{Float64, Matrix{Float64}}
+    trash_vec::Vector{Float64} #used to compute matrix products while avoiding allocations
 end
 
 
 #Evo-data initialization has been moved into the PDMPs.
 function initialize_evolution_data(pdmp::PDMP{<:Lagrangian_Method})
     dim = pdmp.target.dimension
-    return LagrangianEvoData(initialize_point_data(dim), initialize_spectral_data(dim), initialize_evo_tensors(pdmp), Symmetric(Float64.(I(dim))))
+    ini_pd = initialize_point_data(dim)
+    ini_sd = initialize_spectral_data(dim)
+    ini_et = initialize_evo_tensors(pdmp)
+    ini_tv = zeros(Float64, dim)
+    return LagrangianEvoData(ini_pd, ini_sd, ini_et, ini_tv)
 end
 
 #EVO tensors has been moved into the PDMPs.

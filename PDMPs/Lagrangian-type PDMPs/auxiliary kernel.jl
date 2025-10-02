@@ -1,19 +1,40 @@
-
 #All Lagrangian-type methods have the same (conditional) density kernel.
-#This allows us to define broad methods to sample the velocity or determine the full density kernel for all such PDMPs 
-function fetch_velocity_covariance_matrix!(pdmp::PDMP{<:Lagrangian_Method}, position::Vector{Float64}, evo_data::LagrangianEvoData, numerics::NumericalParameters)
+#This allows us to define broad methods to sample the velocity or determine the full density kernel for all such PDMPs .
+#Because the soft abs metric (and its inverse) are known through its spectral decomp, and the inverse metric is the covariance
+#we can adopt a simple allocation free sampling of N(0, Σ) where Σ = Q ≀ D^{-1} ≀ Q'
+"""
+    normal_distr!(vec::Vector{Float64}, Q::Matrix{Float64}, D::Diagonal{Float64, Vector{Float64}}, trash_vec::Vector{Float64})
+
+Given a spectral decomposition Σ = Q*D*Q' the function samples N(0, Σ) and updates 'vec' with the outcome. 
+"""
+function normal_distr!(vec::Vector{Float64}, Q::Matrix{Float64}, D::Diagonal{Float64, Vector{Float64}}, trash_vec::Vector{Float64})
+    @inbounds for i in eachindex(trash_vec)
+        trash_vec[i] = rand()
+    end
+    trash_vec .*= D.diag
+    mul!(vec, Q, trash_vec)
+    return vec
+end
+
+
+function sample_auxiliary_in_place!(vel::Vector{Float64}, pdmp::PDMP{<:Lagrangian_Method}, position::Array{Float64,1}, evo_data::LagrangianEvoData, numerics::NumericalParameters)
     #We determine the hessian
     fetch_hessian!(evo_data.point_data, pdmp.target.log_density, position, numerics.diff_method)
     
     #We determine the spectral data associated to the hessian. It has the unfortunate name evo_data.point_data.position_update_data.value
     fetch_spectral_data!(evo_data.spectral_data, evo_data.point_data.position_update_data.value, pdmp.method.hardness)
 
-    #The covariance_matrix is stored and updated in_place.
-    #We only use the upper part of the matrix to determine the symmetric covariance matrix.
-    #Thus we do not actually have to carry out the full multiplication here.
-    evo_data.aux_covariance.data .= (evo_data.spectral_data.Q)*(evo_data.spectral_data.Dinv)*(evo_data.spectral_data.Q')
-    return evo_data.aux_covariance
+    Q = evo_data.spectral_data.Q
+    Dinv = evo_data.spectral_data.Dinv
+    return normal_distr!(vel, Q, Dinv, evo_data.trash_vec)
 end
+
+function sample_auxiliary!(pdmp::PDMP{<:Lagrangian_Method}, position::Array{Float64,1}, evo_data::LagrangianEvoData, numerics::NumericalParameters)
+    vel = similar(position)
+    sample_auxiliary_in_place!(vel, pdmp, position, evo_data, numerics)
+    return vel
+end
+
 
 function auxiliary_kernel!(pdmp::PDMP{<:Lagrangian_Method}, state::BinaryState, evo_data::LagrangianEvoData, numerics::NumericalParameters)
     #We determine the hessian
